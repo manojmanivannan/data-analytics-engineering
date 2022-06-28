@@ -1,0 +1,5 @@
+*.json
+logs
+plugins
+__pycache__
+.terraform
