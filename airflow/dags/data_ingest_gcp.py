@@ -23,6 +23,8 @@ weather_url = f"https://api.meteomatics.com/{FROM_DATE}T00:00:00Z--{TO_DATE}T00:
 path_to_local_home = os.environ.get("AIRFLOW_HOME", "/opt/airflow/")
 parquet_file = dataset_file.replace('.csv', '.parquet')
 BIGQUERY_DATASET = os.environ.get("BIGQUERY_DATASET", 'weather_daily')
+METEO_USER = os.environ.get("METEO_USER", 'infovista_m')
+METEO_PASSWORD = os.environ.get("METEO_PASSWORD", 'kdN1P8bF6B')
 
 def convert_to_parquet(src_file):
     print("Converting to PARQUET")
