@@ -1,6 +1,7 @@
 import os
 import logging
 
+import datetime
 from airflow import DAG
 from airflow.utils.dates import days_ago
 from airflow.operators.bash import BashOperator
@@ -14,9 +15,9 @@ import pyarrow.parquet as pq
 PROJECT_ID = os.environ.get("GCP_PROJECT_ID")
 BUCKET = os.environ.get("GCP_GCS_BUCKET")
 
-dataset_file = "daily_weather.csv"
-FROM_DATE="2022-06-28"
-TO_DATE="2022-07-01"
+dataset_file = f'daily_weather_{datetime.datetime.today().strftime("%Y-%m-%d")}.csv'
+FROM_DATE=(datetime.datetime.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+TO_DATE=datetime.datetime.today().strftime("%Y-%m-%d")
 LATITUDE="52.520551"
 LONGITUDE="13.461804"
 weather_url = f"https://api.meteomatics.com/{FROM_DATE}T00:00:00Z--{TO_DATE}T00:00:00Z:PT1H/t_2m:C/{LATITUDE},{LONGITUDE}/csv"
@@ -27,7 +28,11 @@ METEO_USER = os.environ.get("METEO_USER", 'infovista_m')
 METEO_PASSWORD = os.environ.get("METEO_PASSWORD", 'kdN1P8bF6B')
 
 def convert_to_parquet(src_file):
-    print("Converting to PARQUET")
+    if not src_file.endswith('.csv'):
+        logging.error("Can only accept source files in CSV format, for the moment")
+        return
+    table = pv.read_csv(src_file)
+    pq.write_table(table, src_file.replace('.csv', '.parquet'))
 
 # NOTE: takes 20 mins, at an upload speed of 800kbps. Faster if your internet has a better upload speed
 def upload_to_gcs(bucket, object_name, local_file):
